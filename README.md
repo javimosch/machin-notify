@@ -9,7 +9,7 @@ Part of [**awesome-machin**](https://github.com/javimosch/awesome-machin) — th
 Instead of wiring Discord/Telegram into every app (and copying webhook URLs and bot tokens around), apps hold **one daemon token** and POST to `/notify`. Add, rotate, or re-route channels at the hub — zero app changes. Secrets live in one place.
 
 ```
-  app / CLI ──POST /notify {token, channel, message}──►  machin-notify daemon ──HTTPS──►  Discord / Telegram
+  app / CLI ──POST /notify (Bearer token, {channel, message})──►  machin-notify daemon ──HTTPS──►  Discord / Telegram
 ```
 
 ## Build & run
@@ -36,14 +36,15 @@ Send (CLI, or any app via REST):
 NOTIFY_TOKEN=<token> machin-notify send ops "deploy finished ✅"
 
 curl -X POST localhost:48090/notify \
-  -d '{"token":"<token>","channel":"ops","message":"hello"}'
+  -H "Authorization: Bearer <token>" \
+  -d '{"channel":"ops","message":"hello"}'
 ```
 
 ## REST API
 
 | | |
 |---|---|
-| `POST /notify` | `{token, channel, message}` → sends; `{"ok":true}` or an error |
+| `POST /notify` | `Authorization: Bearer <token>` + `{channel, message}` → sends; `{"ok":true}` or an error. (Token may also be in the body for back-compat.) |
 | `GET /health` | `{"ok":true}` |
 
 ## Providers

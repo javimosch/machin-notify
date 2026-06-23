@@ -73,6 +73,14 @@ func jstr(s, path) (v) {
 
 // ---- tokens ----
 
+// pull the token from an Authorization: Bearer header (preferred), case-insensitive.
+func bearer_token(req) (t) {
+    t = ""
+    h := header(req, "authorization")
+    if has_prefix(h, "Bearer ") { t = substr(h, 7, len(h))  return }
+    if has_prefix(h, "bearer ") { t = substr(h, 7, len(h)) }
+}
+
 func token_valid(db, token) (ok) {
     ok = false
     if token == "" { return }
@@ -117,7 +125,8 @@ func handle(req) (res) {
     }
     if req.method == "POST" {
         if req.path == "/notify" {
-            token := jstr(req.body, ".token")
+            token := bearer_token(req)                 // Authorization: Bearer <token>
+            if token == "" { token = jstr(req.body, ".token") }   // body fallback (compat)
             channel := jstr(req.body, ".channel")
             message := jstr(req.body, ".message")
             db := open_db()
@@ -157,11 +166,11 @@ func run_daemon() {
 func cmd_send(channel, message) {
     token := env("NOTIFY_TOKEN")
     if token == "" { println("set NOTIFY_TOKEN to an app token (machin-notify token new <label>)")  exit(2) }
-    body := "{\"token\":\"" + json_escape(token) + "\",\"channel\":\"" + json_escape(channel) + "\",\"message\":\"" + json_escape(message) + "\"}"
+    body := "{\"channel\":\"" + json_escape(channel) + "\",\"message\":\"" + json_escape(message) + "\"}"
     hostport := daemon_addr()
     fd := dial("127.0.0.1", PORT())
     if fd < 0 { println("cannot reach daemon at " + hostport + " (is it running?)")  exit(1) }
-    write(fd, "POST /notify HTTP/1.1\r\nHost: " + hostport + "\r\nContent-Type: application/json\r\nContent-Length: " + str(len(body)) + "\r\nConnection: close\r\n\r\n" + body)
+    write(fd, "POST /notify HTTP/1.1\r\nHost: " + hostport + "\r\nAuthorization: Bearer " + token + "\r\nContent-Type: application/json\r\nContent-Length: " + str(len(body)) + "\r\nConnection: close\r\n\r\n" + body)
     resp := read(fd)
     close(fd)
     b := http_body(resp)
