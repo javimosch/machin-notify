@@ -2,7 +2,9 @@
 
 A **notification hub** — daemon + CLI — written in **[machin](https://github.com/javimosch/machin)** (MFL). Configure your **Discord** webhooks and **Telegram** bots once in the daemon; every app then sends notifications through a single token-auth'd endpoint and never embeds a provider secret.
 
-Part of [**awesome-machin**](https://github.com/javimosch/awesome-machin) — the machin ecosystem.
+Part of [**awesome-machin**](https://github.com/javimosch/awesome-machin) — the machin ecosystem. Used by [**machin-meet**](https://github.com/javimosch/machin-meet) for booking alerts.
+
+> **Agents:** [`SKILL.md`](SKILL.md) teaches how to run, configure, integrate, and deploy this hub.
 
 ## Why
 
